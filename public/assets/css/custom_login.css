@@ -1,0 +1,8 @@
+.invalid-feedback {
+   display: block !important;
+   margin-top: unset !important;
+}
+
+.form-material .has-danger .form-control:focus {
+   background-image: linear-gradient(#fc4b6c,#fc4b6c),linear-gradient(#d9d9d9,#d9d9d9) !important;
+}
