@@ -27,7 +27,7 @@ class Contact extends Component {
    }
 
    componentDidMount() {
-      this.setState({ ...content[segment[5]] })
+      this.setState({ ...content.detail })
    }
 
    _onChange(e) {
@@ -59,6 +59,15 @@ class Contact extends Component {
    }
 
    render() {
+      const {
+         name,
+         title,
+         email,
+         phone,
+         affiliation,
+         errors
+      } = this.state
+
       return (
          <Container fluid={true}>
             <Row className="page-titles">
@@ -81,32 +90,32 @@ class Contact extends Component {
                         <p>Enter contact details, typically for a principal editorship, managing editorship, or administrative staff position, which can be displayed on your publicly accessible website.</p>
                         <Row>
                            <Col md={6}>
-                              <Form.Group className={this.state.errors.name ? 'has-danger' : ''}>
+                              <Form.Group className={errors.name ? 'has-danger' : ''}>
                                  <Form.Label>Name</Form.Label>
-                                 <Form.Control name="name" value={this.state.name} onChange={this._onChange} size="sm" autoFocus />
-                                 <Form.Control.Feedback type="invalid">{this.state.errors.name}</Form.Control.Feedback>
+                                 <Form.Control name="name" value={name} onChange={this._onChange} size="sm" autoFocus />
+                                 <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
                               </Form.Group>
-                              <Form.Group className={this.state.errors.email ? 'has-danger' : ''}>
+                              <Form.Group className={errors.email ? 'has-danger' : ''}>
                                  <Form.Label>Email</Form.Label>
-                                 <Form.Control name="email" value={this.state.email} onChange={this._onChange} size="sm" type="email" />
-                                 <Form.Control.Feedback type="invalid">{this.state.errors.email}</Form.Control.Feedback>
+                                 <Form.Control name="email" value={email} onChange={this._onChange} size="sm" type="email" />
+                                 <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
                               </Form.Group>
                            </Col>
                            <Col md={6}>
                               <Form.Group>
                                  <Form.Label>Title</Form.Label>
-                                 <Form.Control name="title" value={this.state.title} onChange={this._onChange} size="sm" />
+                                 <Form.Control name="title" value={title} onChange={this._onChange} size="sm" />
                               </Form.Group>
-                              <Form.Group className={this.state.errors.phone ? 'has-danger' : ''}>
+                              <Form.Group className={errors.phone ? 'has-danger' : ''}>
                                  <Form.Label>Phone</Form.Label>
-                                 <Form.Control name="phone" value={this.state.phone} onChange={this._onChange} size="sm" type="number" />
-                                 <Form.Control.Feedback type="invalid">{this.state.errors.phone}</Form.Control.Feedback>
+                                 <Form.Control name="phone" value={phone} onChange={this._onChange} size="sm" type="number" />
+                                 <Form.Control.Feedback type="invalid">{errors.phone}</Form.Control.Feedback>
                               </Form.Group>
                            </Col>
                            <Col md={12}>
                               <Form.Group>
                                  <Form.Label>Affiliation</Form.Label>
-                                 <Form.Control name="affiliation" value={this.state.affiliation} onChange={this._onChange} size="sm" />
+                                 <Form.Control name="affiliation" value={affiliation} onChange={this._onChange} size="sm" />
                               </Form.Group>
                            </Col>
                         </Row>

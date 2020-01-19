@@ -8,13 +8,8 @@ use App\Models\Admin\JournalModel;
 
 class Journal extends \App\Controllers\AdminPanel {
 
-   public $userExists = [];
-
    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger) {
       parent::initController($request, $response, $logger);
-
-      $users = explode(',', $request->getGetPost('exists'));
-      $this->userExists = $users;
    }
 
    public function wizard($id, $type) {
@@ -32,12 +27,14 @@ class Journal extends \App\Controllers\AdminPanel {
       }
 
       $model = new JournalModel($this->users['id']);
+      $footerJs['detail'] = $model->getDetailJournal($id, $type);
+      $footerJs['country'] = $this->arrayCountry();
 
       $this->data = [
          'title' => $arrTitle[$type],
          'internalCss' => $this->app->trumbowyg['css'],
          'internalJs' => ['http://localhost:8080/adminJournal'. ucfirst($type) .'.js'],
-         'footerJs' => array_merge($model->getDetailJournal($id, $type), ['country' => $this->arrayCountry()])
+         'footerJs' => $footerJs
       ];
 
       $this->template($this->data);
@@ -110,13 +107,10 @@ class Journal extends \App\Controllers\AdminPanel {
          foreach ($query->getResultArray() as $data) {
             $i++;
    
-            $action = '<div class="row-actions">';
-            $action .= '<span class="edit"><a data-id="'.$data['id'].'">Edit</a></span>';
-            $action .= '<span class="delete"><a data-id="'.$data['id'].'" data-initial="'.$data['initial'].'" data-type="delete">Delete</a></span>';
-            $action .= '</div>';
-   
             $result = [];
-            $result[] = $data['name'] . '<br/>' . $action;
+            $result['id'] = $data['id'];
+            $result['initial'] = $data['initial'];
+            $result[] = $data['name'];
             $result[] = $data['initial'];
    
             $response[] = $result;
@@ -171,30 +165,6 @@ class Journal extends \App\Controllers\AdminPanel {
          } else {
             $response['msg_response'] = 'Something went wrong.';
             $response['errors'] = \Config\Services::validation()->getErrors();
-         }
-         return $this->response->setJSON($response);
-      } else {
-         $this->notFound();
-      }
-   }
-
-   public function uploadApperance() {
-      if ($this->request->isAJAX()) {
-         $response = ['status' => false, 'msg_response' => ''];
-         $post = $this->request->getVar();
-         $validate = new Validate();
-
-         if ($this->validate($validate->uploadApperance)) {
-            /* $path = ROOTPATH . 'public/' . $post['initial'] . '/.' . $post['field'];
-            write_file($path, $post['files']);
-
-            $model = new JournalModel();
-            $model->uploadApperance($post); */
-
-            $response['status'] = true;
-            $response['content'][$post['field']] = $post['files'];
-         } else {
-            $response['msg_response'] = 'Something went wrong.';
          }
          return $this->response->setJSON($response);
       } else {
@@ -405,9 +375,11 @@ class Journal extends \App\Controllers\AdminPanel {
 
    public function chooseUserExists() {
       if ($this->request->isAJAX()) {
+         $existUsers = $this->request->getVar('exists');
+
          $model = new JournalModel();
-         $response['results'] = $model->getUserExistsLists($this->userExists);
-         $response['content'] = $this->userExists;
+         $response['results'] = $model->getUserExistsLists($existUsers);
+         $response['content'] = $existUsers;
 
          return $this->response->setJSON($response);
       } else {

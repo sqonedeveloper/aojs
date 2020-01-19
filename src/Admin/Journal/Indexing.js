@@ -25,7 +25,7 @@ class Indexing extends Component {
    }
 
    componentDidMount() {
-      this.setState({ ...content[segment[5]] })
+      this.setState({ ...content.detail })
    }
 
    _onChange(e) {

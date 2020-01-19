@@ -34,9 +34,10 @@ class Users extends Component {
    }
 
    componentDidMount() {
+      const { detail, country } = content
       this.setState({
-         usersLists: content.users.users,
-         countryLists: content.country
+         usersLists: detail.usersLists,
+         countryLists: country
       })
    }
 
@@ -95,9 +96,10 @@ class Users extends Component {
    _handleChooseUserExists() {
       this.setState({ modalUsersExists: true })
 
-      let existsUsers = []
-      this.state.usersLists.map(data => {
-         existsUsers.push(data.id_users)
+      const { usersLists } = this.state
+      var existsUsers = []
+      usersLists.map(data => {
+         existsUsers.push(data.id)
       })
 
       axios.
@@ -135,6 +137,10 @@ class Users extends Component {
    }
 
    render() {
+      const {
+         usersLists
+      } = this.state
+
       return (
          <Container fluid={true}>
             <Row className="page-titles">
@@ -163,14 +169,13 @@ class Users extends Component {
                            </tr>
                         </thead>
                         <tbody>
-                           {this.state.usersLists.length > 0 ? this.state.usersLists.map((data, key) => {
+                           {usersLists.length > 0 ? usersLists.map((data, key) => {
                               return (
                                  <tr key={key}>
                                     <td>
                                        {data.fullname}
                                        <div className="row-actions">
-                                          <span className="edit"><a data-id="">Edit</a></span>
-                                          <span className="delete"><a onClick={this._deleteUsers.bind(this, data.id)} data-type="delete">Delete</a></span>
+                                          <span className="delete"><a onClick={this._deleteUsers.bind(this, data.id_user_journal)} data-type="delete">Delete</a></span>
                                        </div>
                                     </td>
                                     <td>{data.public_name}</td>

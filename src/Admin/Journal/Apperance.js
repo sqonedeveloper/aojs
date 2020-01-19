@@ -6,6 +6,7 @@ import Navigation from './Navigation'
 import 'trumbowyg'
 import axios from 'axios'
 import { LazyLoadImage } from 'react-lazy-load-image-component'
+import { renderTrumbowyg, appendValueTrumbowyg } from '../Helper'
 
 axios.defaults.baseURL = siteURL
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
@@ -28,27 +29,18 @@ class Apperance extends Component {
    }
 
    componentDidMount() {
-      $('#page_footer').trumbowyg({
-         svgPath: '/assets/plugins/trumbowyg/ui/icons.svg',
-         removeformatPasted: true,
-         autogrow: true,
-         imageWidthModalEdit: true
-      })
-      $('#additional_content').trumbowyg({
-         svgPath: '/assets/plugins/trumbowyg/ui/icons.svg',
-         removeformatPasted: true,
-         autogrow: true,
-         imageWidthModalEdit: true
-      })
+      const { detail } = content
+      this.setState({ ...detail })
 
-      var apperance = content[segment[5]]
-      this.setState({ ...apperance })
+      renderTrumbowyg('#page_footer')
+      renderTrumbowyg('#additional_content')
+      
+      appendValueTrumbowyg('#page_footer', detail.page_footer)
+      appendValueTrumbowyg('#additional_content', detail.additional_content)
 
-      $('#page_footer').trumbowyg('html', apperance.page_footer)
-      $('#additional_content').trumbowyg('html', apperance.additional_content)
-      this._readImageBase64('public/' + apperance.initial, 'logo')
-      this._readImageBase64('public/' + apperance.initial, 'favicon')
-      this._readImageBase64('public/' + apperance.initial, 'thumbnail')
+      this._readImageBase64('public/' + detail.initial, 'logo')
+      this._readImageBase64('public/' + detail.initial, 'favicon')
+      this._readImageBase64('public/' + detail.initial, 'thumbnail')
    }
 
    _onChange(e) {
@@ -59,11 +51,23 @@ class Apperance extends Component {
          var f = this[name].files[0]
          var reader = new FileReader()
          reader.addEventListener('load', (env) => {
-            // this._uploadFileImage(name, env.target.result)
             this.setState({ [name]: env.target.result })
          })
          reader.readAsDataURL(f)
       }
+   }
+
+   _renderTrumbowyg(id) {
+      $(id).trumbowyg({
+         svgPath: '/assets/plugins/trumbowyg/ui/icons.svg',
+         removeformatPasted: true,
+         autogrow: true,
+         imageWidthModalEdit: true
+      })
+   }
+
+   _appendValueTrumbowyg(id, content) {
+      $(id).trumbowyg('html', content)
    }
 
    _readImageBase64(path, file_name) {
@@ -78,32 +82,6 @@ class Apperance extends Component {
             if (response.status) {
                this.setState({ ...response.content })
             }
-         }).
-         catch(error => {
-            console.log('Error', error.message)
-         })
-   }
-
-   _uploadFileImage(field, files) {
-      var formData = new FormData()
-      formData.append('id_journal', segment[4])
-      formData.append('initial', this.state.initial)
-      formData.append('field', field)
-      formData.append('files', files)
-
-      axios.
-         post('/admin/journal/update/uploadApperance', formData).
-         then(res => {
-            var response = res.data
-            if (!response.status) {
-               this.setState({ ...response })
-            } else {
-               this.setState({ ...response.content })
-            }
-
-            setTimeout(() => {
-               this.setState({ msg_response: '' })
-            }, 3000);
          }).
          catch(error => {
             console.log('Error', error.message)
@@ -126,10 +104,6 @@ class Apperance extends Component {
          then(res => {
             var response = res.data
             this.setState({ ...response })
-
-            setTimeout(() => {
-               this.setState({ msg_response: '' })
-            }, 3000);
          }).
          catch(error => {
             console.log('Error', error.message)

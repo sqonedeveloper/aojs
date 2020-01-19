@@ -126,17 +126,16 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Admin'], function($rout
 		});
 
 		$routes->group('update', function($routes) {
-			$routes->match(['get', 'post'], 'masthead', 'Journal::updateMasthead');
-			$routes->match(['get', 'post'], 'contact', 'Journal::updateContact');
-			$routes->match(['get', 'post'], 'apperance', 'Journal::updateApperance');
-			$routes->match(['get', 'post'], 'submission', 'Journal::updateSubmission');
-			$routes->match(['get', 'post'], 'uploadApperance', 'Journal::uploadApperance');
-			$routes->match(['get', 'post'], 'indexing', 'Journal::uploadIndexing');
-			$routes->match(['get', 'post'], 'createdUser', 'Journal::createdUser');
-			$routes->match(['get', 'post'], 'deleteUsers', 'Journal::deleteUsers');
-			$routes->match(['get', 'post'], 'submissionPreparation', 'Journal::submissionPreparation');
-			$routes->match(['get', 'post'], 'deleteSubmissionPreparation', 'Journal::deleteSubmissionPreparation');
-			$routes->match(['get', 'post'], 'editSubmissionPreparation', 'Journal::editSubmissionPreparation');
+			$routes->post('masthead', 'Journal::updateMasthead');
+			$routes->post('contact', 'Journal::updateContact');
+			$routes->post('apperance', 'Journal::updateApperance');
+			$routes->post('submission', 'Journal::updateSubmission');
+			$routes->post('indexing', 'Journal::uploadIndexing');
+			$routes->post('createdUser', 'Journal::createdUser');
+			$routes->post('deleteUsers', 'Journal::deleteUsers');
+			$routes->post('submissionPreparation', 'Journal::submissionPreparation');
+			$routes->post('deleteSubmissionPreparation', 'Journal::deleteSubmissionPreparation');
+			$routes->post('editSubmissionPreparation', 'Journal::editSubmissionPreparation');
 		});
 	});
 

@@ -5,6 +5,7 @@ import MsgResponse from '../MsgResponse'
 import Navigation from './Navigation'
 import axios from 'axios'
 import 'trumbowyg'
+import { renderTrumbowyg, appendValueTrumbowyg } from '../Helper'
 
 axios.defaults.baseURL = siteURL
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
@@ -28,23 +29,15 @@ class Submission extends Component {
    }
 
    componentDidMount() {
-      $('#author_guidelines').trumbowyg({
-         svgPath: '/assets/plugins/trumbowyg/ui/icons.svg',
-         removeformatPasted: true,
-         autogrow: true,
-         imageWidthModalEdit: true
-      })
-      $('#privacy_statement').trumbowyg({
-         svgPath: '/assets/plugins/trumbowyg/ui/icons.svg',
-         removeformatPasted: true,
-         autogrow: true,
-         imageWidthModalEdit: true
-      })
+      const { detail } = content
 
-      $('#author_guidelines').trumbowyg('html', content[segment[5]].author_guidelines)
-      $('#privacy_statement').trumbowyg('html', content[segment[5]].privacy_statement)
+      this.setState({ ...detail })
 
-      this.setState({ submissionPreparation: content.submission.submissionPreparation })
+      renderTrumbowyg('#author_guidelines')
+      renderTrumbowyg('#privacy_statement')
+
+      appendValueTrumbowyg('#author_guidelines', detail.author_guidelines)
+      appendValueTrumbowyg('#privacy_statement', detail.privacy_statement)
    }
 
    _onChange(e) {
@@ -121,12 +114,12 @@ class Submission extends Component {
       var formData = new FormData()
       formData.append('id_journal', segment[4])
       formData.append('id', id)
-      
+
       axios.
          post('/admin/journal/update/editSubmissionPreparation', formData).
          then(res => {
             var response = res.data
-            
+
             if (response.status) {
                this.setState({
                   modalPreparation: true,
@@ -142,6 +135,8 @@ class Submission extends Component {
    }
 
    render() {
+      const { submissionPreparation } = this.state
+
       return (
          <Container fluid={true}>
             <Row className="page-titles">
@@ -163,25 +158,25 @@ class Submission extends Component {
                      <div className="card-body">
                         <Form.Group>
                            <Form.Label>Submission Preparation Checklist</Form.Label>
+                           <Button
+                              variant="info"
+                              className="waves-effect waves-light float-right"
+                              size="xs"
+                              onClick={() => this.setState({ modalPreparation: true })}
+                           >Add preparation item checklist</Button>
                            <ol>
-                              {this.state.submissionPreparation.length > 0 ? this.state.submissionPreparation.map((data, key) => {
+                              {submissionPreparation.length > 0 ? submissionPreparation.map((data, key) => {
                                  return (
                                     <li key={key}>
                                        {data.label}
-                                       <div className="row-actions">
+                                       <div className="row-actions" style={{ position: 'static' }}>
                                           <span className="edit"><a onClick={this._editSubmissionPreparation.bind(this, data.id)}>Edit</a></span>
                                           <span className="delete"><a data-type="delete" onClick={this._deleteSubmissionPreparation.bind(this, data.id)}>Delete</a></span>
                                        </div>
                                     </li>
                                  )
-                              }) : <li>-</li>}
+                              }) : ''}
                            </ol>
-                           <Button
-                              variant="info"
-                              className="waves-effect waves-light"
-                              size="sm"
-                              onClick={() => this.setState({ modalPreparation: true })}
-                           >Add preparation item checklist</Button>
                         </Form.Group>
                         <Form.Group>
                            <Form.Label>Author Guidelines</Form.Label>

@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
-import { Container, Row, Col, Breadcrumb, Form } from 'react-bootstrap'
+import { Container, Row, Col, Breadcrumb, Form, Button } from 'react-bootstrap'
 import MsgResponse from '../MsgResponse'
 import axios from 'axios'
 import 'trumbowyg'
@@ -32,34 +32,34 @@ class Masthead extends Component {
    }
 
    componentDidMount() {
-      this.setState({ ...content[segment[5]] })
+      const { detail } = content
 
-      $('#summary').trumbowyg({
-         svgPath: '/assets/plugins/trumbowyg/ui/icons.svg',
-         removeformatPasted: true,
-         autogrow: true,
-         imageWidthModalEdit: true
-      })
-      $('#editorial_team').trumbowyg({
-         svgPath: '/assets/plugins/trumbowyg/ui/icons.svg',
-         removeformatPasted: true,
-         autogrow: true,
-         imageWidthModalEdit: true
-      })
-      $('#about_journal').trumbowyg({
-         svgPath: '/assets/plugins/trumbowyg/ui/icons.svg',
-         removeformatPasted: true,
-         autogrow: true,
-         imageWidthModalEdit: true
-      })
+      this.setState({ ...detail })
 
-      $('#summary').trumbowyg('html', content.masthead.summary)
-      $('#editorial_team').trumbowyg('html', content.masthead.editorial_team)
-      $('#about_journal').trumbowyg('html', content.masthead.about_journal)
+      this._renderTrumbowyg('#summary')
+      this._renderTrumbowyg('#editorial_team')
+      this._renderTrumbowyg('#about_journal')
+
+      this._appendValueTrumbowyg('#summary', detail.summary)
+      this._appendValueTrumbowyg('#editorial_team', detail.editorial_team)
+      this._appendValueTrumbowyg('#about_journal', detail.about_journal)
    }
 
    _onChange(e) {
       this.setState({ [e.target.name]: e.target.value })
+   }
+
+   _renderTrumbowyg(id) {
+      $(id).trumbowyg({
+         svgPath: '/assets/plugins/trumbowyg/ui/icons.svg',
+         removeformatPasted: true,
+         autogrow: true,
+         imageWidthModalEdit: true
+      })
+   }
+
+   _appendValueTrumbowyg(id, content) {
+      $(id).trumbowyg('html', content)
    }
 
    _submit() {
@@ -91,6 +91,16 @@ class Masthead extends Component {
    }
 
    render() {
+      const {
+         btnLoading,
+         name,
+         initial,
+         abbreviation,
+         publisher,
+         online_issn,
+         print_issn,
+      } = this.state
+
       return (
          <Container fluid={true}>
             <Row className="page-titles">
@@ -114,33 +124,33 @@ class Masthead extends Component {
                            <Row>
                               <Col md={6} className={this.state.errors.name ? 'has-danger' : ''}>
                                  <Form.Label>Journal Name</Form.Label>
-                                 <Form.Control name="name" value={this.state.name} onChange={this._onChange} size="sm" autoFocus />
+                                 <Form.Control name="name" value={name} onChange={this._onChange} size="sm" autoFocus />
                                  <Form.Control.Feedback type="invalid">{this.state.errors.name}</Form.Control.Feedback>
                               </Col>
                               <Col md={3} className={this.state.errors.initial ? 'has-danger' : ''}>
                                  <Form.Label>Journal Initials</Form.Label>
-                                 <Form.Control value={this.state.initial} size="sm" disabled={true} />
+                                 <Form.Control value={initial} size="sm" disabled={true} />
                                  <Form.Control.Feedback type="invalid">{this.state.errors.initial}</Form.Control.Feedback>
                               </Col>
                               <Col md={3}>
                                  <Form.Label>Journal Abbreviation</Form.Label>
-                                 <Form.Control name="abbreviation" value={this.state.abbreviation} onChange={this._onChange} size="sm" />
+                                 <Form.Control name="abbreviation" value={abbreviation} onChange={this._onChange} size="sm" />
                               </Col>
                            </Row>
                         </Form.Group>
                         <Form.Group>
                            <Form.Label>Publisher</Form.Label>
-                           <Form.Control name="publisher" value={this.state.publisher} onChange={this._onChange} size="sm" />
+                           <Form.Control name="publisher" value={publisher} onChange={this._onChange} size="sm" />
                         </Form.Group>
                         <Form.Group>
                            <Form.Label>ISSN</Form.Label>
                            <Row>
                               <Col md={3}>
-                                 <Form.Control name="online_issn" value={this.state.online_issn} onChange={this._onChange} size="sm" />
+                                 <Form.Control name="online_issn" value={online_issn} onChange={this._onChange} size="sm" />
                                  <Form.Control.Feedback type="valid" style={{ display: 'block' }}>Online ISSN</Form.Control.Feedback>
                               </Col>
                               <Col md={3}>
-                                 <Form.Control name="print_issn" value={this.state.print_issn} onChange={this._onChange} size="sm" />
+                                 <Form.Control name="print_issn" value={print_issn} onChange={this._onChange} size="sm" />
                                  <Form.Control.Feedback type="valid" style={{ display: 'block' }}>Print ISSN</Form.Control.Feedback>
                               </Col>
                            </Row>
@@ -157,7 +167,12 @@ class Masthead extends Component {
                            <Form.Label>About the Journal</Form.Label>
                            <Form.Control id="about_journal" size="sm" as="textarea" />
                         </Form.Group>
-                        <button className="btn waves-effect waves-light btn-success btn-sm" onClick={this._submit.bind(this)}>{!this.state.btnLoading ? 'Save Masthead' : 'Loading...'}</button>
+                        <Button
+                           variant="success"
+                           className="waves-effect waves-light"
+                           size="sm"
+                           onClick={btnLoading ? null : this._submit.bind(this)}
+                        >{btnLoading ? 'Loading...' : 'Save Masthead'}</Button>
                      </div>
                   </div>
                </Col>

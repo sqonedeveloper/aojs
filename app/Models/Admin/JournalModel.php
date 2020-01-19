@@ -25,10 +25,14 @@ class JournalModel extends \CodeIgniter\Model {
       return $this->_getUsersJournal($post['id_journal']);
    }
 
-   function getUserExistsLists($userExists = []) {
+   function getUserExistsLists($userExists) {
+      $get_id = explode(',', $userExists);
+
       $table = $this->db->table('tb_users');
       $table->select('id, first_name, last_name, public_name, username, email, country');
-      $table->whereNotIn('id', $userExists);
+      if (!empty($userExists)) {
+         $table->whereNotIn('id', $get_id);
+      }
 
       $get = $table->get();
       return $get->getResultArray();
@@ -199,78 +203,120 @@ class JournalModel extends \CodeIgniter\Model {
    }
 
    function getDetailJournal($id, $type) {
-      $table = $this->db->table('tb_journal a');
+      return $this->{$type}($id);
+   }
 
-      if ($type === 'masthead') {
-         $select[$type] = ['a.name', 'a.summary', 'a.initial', 'b.abbreviation', 'b.publisher', 'b.online_issn', 'b.print_issn', 'b.editorial_team', 'b.about_journal'];
-      } else if ($type === 'contact') {
-         $select[$type] = ['b.name', 'b.title', 'b.email', 'b.phone', 'b.affiliation'];
-      } else if ($type === 'apperance') {
-         $select[$type] = ['b.page_footer', 'a.initial', 'b.additional_content'];
-      } else if ($type === 'submission') {
-         $select[$type] = ['b.author_guidelines', 'b.privacy_statement', 'c.id', 'c.label'];
-      } else if ($type === 'indexing') {
-         $select[$type] = ['b.description', 'a.initial', 'b.custom_tags'];
-      } else if ($type === 'users') {
-         $select[$type] = ['b.id', 'b.id_users', 'c.first_name', 'c.last_name', 'c.public_name', 'c.username', 'c.email'];
+   public function masthead($id) {
+      $table = $this->db->table('tb_journal_masthead a');
+      $table->select('a.abbreviation, a.publisher, a.online_issn, a.print_issn, a.editorial_team, a.about_journal,
+         b.name, b.summary, b.initial');
+      $table->join('tb_journal b', 'b.id = a.id_journal');
+      $table->where('a.id_journal', $id);
+
+      $get = $table->get();
+      $data = $get->getRowArray();
+
+      return [
+         'abbreviation' => (string) $data['abbreviation'],
+         'publisher' => (string) $data['publisher'],
+         'online_issn' => (string) $data['online_issn'],
+         'print_issn' => (string) $data['print_issn'],
+         'editorial_team' => (string) html_entity_decode($data['editorial_team']),
+         'about_journal' => (string) html_entity_decode($data['about_journal']),
+         'name' => (string) $data['name'],
+         'summary' => (string) html_entity_decode($data['summary']),
+         'initial' => (string) $data['initial'],
+      ];
+   }
+
+   public function contact($id) {
+      $table = $this->db->table('tb_journal_contact');
+      $table->where('id_journal', $id);
+
+      $get = $table->get();
+      $data = $get->getRowArray();
+      $fields = $get->getFieldNames();
+
+      $response = [];
+      foreach ($fields as $key) {
+         $response[$key] = (string) $data[$key];
       }
 
-      $table->select(implode(',', $select[$type]));
-      $table->join('tb_journal_'. $type .' b', 'b.id_journal = a.id');
-      if ($type === 'users') {
-         $table->join('tb_users c', 'c.id = b.id_users', 'left');
-      } else if ($type === 'submission') {
-         $table->join('tb_journal_submission_preparation c', 'c.id_journal = a.id', 'left');
+      return $response;
+   }
+
+   public function apperance($id) {
+      $table = $this->db->table('tb_journal_apperance a');
+      $table->select('a.logo, a.page_footer, a.favicon, a.thumbnail, a.additional_content, b.initial');
+      $table->join('tb_journal b', 'b.id = a.id_journal');
+      $table->where('a.id_journal', $id);
+
+      $get = $table->get();
+      $data = $get->getRowArray();
+      $fields = $get->getFieldNames();
+
+      $decode_html = ['page_footer', 'additional_content'];
+
+      $response = [];
+      foreach ($fields as $key) {
+         if (in_array($key, $decode_html)) {
+            $response[$key] = html_entity_decode($data[$key]);
+         } else {
+            $response[$key] = (string) $data[$key];
+         }
       }
-      $table->where('a.id', $id);
-      $table->where('a.author_created', $this->idUsers);
-      $query = $table->get();
-      $data = $query->getRowArray();
+      return $response;
+   }
 
-      $htmlDecode = ['summary', 'editorial_team', 'about_journal', 'author_guidelines', 'privacy_statement', 'page_footer', 'custom_tags'];
+   public function submission($id) {
+      $table = $this->db->table('tb_journal_submission');
+      $table->select('author_guidelines, privacy_statement');
+      $table->where('id_journal', $id);
 
-      if (isset($data)) {
-         $output = [];
-         foreach ($select[$type] as $fields) {
-            $exp = explode('.', $fields);
-            $field = $exp[1];
+      $get = $table->get();
+      $data = $get->getRowArray();
+      $fields = $get->getFieldNames();
 
-            if (in_array($field, $htmlDecode)) {
-               $output[$field] = html_entity_decode($data[$field]);
-            } else {
-               $output[$field] = (string) $data[$field];
-            }
-         }
-
-         $usersLists['users'] = [];
-         if ($type === 'users') {
-            foreach ($query->getResultArray() as $data) {
-               array_push($usersLists['users'], [
-                  'id' => $data['id'],
-                  'id_users' => $data['id_users'],
-                  'fullname' => $data['last_name'] . ' ' . $data['first_name'],
-                  'public_name' => $data['public_name'],
-                  'username' => $data['username'],
-                  'email' => $data['email']
-               ]);
-            }
-         }
-
-         $submissionPreparation['submissionPreparation'] = [];
-         if ($type === 'submission') {
-            foreach ($query->getResultArray() as $data) {
-               array_push($submissionPreparation['submissionPreparation'], [
-                  'id' => $data['id'],
-                  'label' => $data['label']
-               ]);
-            }
-         }
-         
-         $response[$type] = array_merge($output, $usersLists, $submissionPreparation);
-         return $response;
-      } else {
-         throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+      $response = [];
+      foreach ($fields as $key) {
+         $response[$key] = html_entity_decode($data[$key]);
       }
+
+      $response['submissionPreparation'] = $this->_getSubmissionPreparation($id);
+      return $response;
+   }
+
+   public function indexing($id) {
+      $table = $this->db->table('tb_journal_indexing');
+      $table->where('id_journal', $id);
+      
+      $get = $table->get();
+      $data = $get->getRowArray();
+      $fields = $get->getFieldNames();
+
+      $decode_html = ['custom_tags'];
+      
+      $response = [];
+      foreach ($fields as $key) {
+         if (in_array($key, $decode_html)) {
+            $response[$key] = html_entity_decode($data[$key]);
+         } else {
+            $response[$key] = (string) $data[$key];
+         }
+      }
+      
+      return $response;
+   }
+
+   public function users($id) {
+      $table = $this->db->table('tb_journal_users a');
+      $table->select('a.id as id_user_journal, b.id, fullname(b.first_name, b.last_name), b.public_name, b.username, b.email');
+      $table->join('tb_users b', 'b.id = a.id_users');
+
+      $get = $table->get();
+
+      $response['usersLists'] = $get->getResultArray();
+      return $response;
    }
 
    function deleteJournal($post = []) {
@@ -285,6 +331,8 @@ class JournalModel extends \CodeIgniter\Model {
          @unlink(ROOTPATH . 'public/' . $post['initial'] . '/' . $dataApperance['favicon']);
          @unlink(ROOTPATH . 'public/' . $post['initial'] . '/' . $dataApperance['thumbnail']);
       }
+
+      rmdir(ROOTPATH . 'public/' . $post['initial']);
 
       $table = $this->db->table('tb_journal');
       $table->where('id', $post['id']);

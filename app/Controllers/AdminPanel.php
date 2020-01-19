@@ -27,7 +27,7 @@ class AdminPanel extends \CodeIgniter\Controller {
             $this->users = $session->get();
          }
       } else {
-         exit('You need to login?');
+         exit('You need to <a href="'.site_url('login').'">login?</a>');
       }
    }
 
